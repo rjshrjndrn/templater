@@ -10,31 +10,49 @@ import (
 	"path/filepath"
 
 	"github.com/Masterminds/sprig/v3"
+	"gopkg.in/yaml.v3"
 )
 
-func processTemplate(inputPath, outputPath string) error {
-	// Read the input file
+// parseYAMLValues reads a YAML file and returns the parsed data.
+func parseYAMLValues(valuesPath string) (map[string]interface{}, error) {
+	var values map[string]interface{}
+
+	if valuesPath == "" {
+		return values, nil // No values file provided
+	}
+
+	data, err := ioutil.ReadFile(valuesPath)
+	if err != nil {
+		return nil, err
+	}
+
+	err = yaml.Unmarshal(data, &values)
+	if err != nil {
+		return nil, err
+	}
+
+	return values, nil
+}
+
+// processTemplate reads the input file, applies the template with the given values, and writes to outputPath.
+func processTemplate(inputPath, outputPath string, values map[string]interface{}) error {
 	content, err := ioutil.ReadFile(inputPath)
 	if err != nil {
 		return err
 	}
 
-	// Create a new template with Sprig functions
 	tpl, err := template.New(filepath.Base(inputPath)).Funcs(sprig.HtmlFuncMap()).Parse(string(content))
 	if err != nil {
 		return err
 	}
 
-	// If outputPath is not specified, use stdout
 	var output *os.File
 	if outputPath == "" {
 		output = os.Stdout
 	} else {
-		// Ensure output directory exists
 		if err := os.MkdirAll(filepath.Dir(outputPath), os.ModePerm); err != nil {
 			return err
 		}
-		// Create the output file
 		output, err = os.Create(outputPath)
 		if err != nil {
 			return err
@@ -42,8 +60,7 @@ func processTemplate(inputPath, outputPath string) error {
 		defer output.Close()
 	}
 
-	// Execute the template
-	if err := tpl.Execute(output, nil); err != nil {
+	if err := tpl.Execute(output, values); err != nil {
 		return err
 	}
 
@@ -51,13 +68,20 @@ func processTemplate(inputPath, outputPath string) error {
 }
 
 func main() {
-	var inputPath, outputPath string
+	var inputPath, outputPath, valuesPath string
 	flag.StringVar(&inputPath, "i", "", "Path to input file or directory")
-	flag.StringVar(&outputPath, "o", "out", "Output directory (optional, default: out)")
+	flag.StringVar(&outputPath, "o", "", "Output directory (optional)")
+	flag.StringVar(&valuesPath, "f", "", "Path to values YAML file (optional)")
 	flag.Parse()
 
 	if inputPath == "" {
 		fmt.Println("Input path is required.")
+		os.Exit(1)
+	}
+
+	values, err := parseYAMLValues(valuesPath)
+	if err != nil {
+		fmt.Printf("Error parsing values file: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -68,7 +92,6 @@ func main() {
 	}
 
 	if info.IsDir() {
-		// Process each file in the directory
 		err := filepath.Walk(inputPath, func(path string, info fs.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -79,7 +102,7 @@ func main() {
 					return err
 				}
 				outputFilePath := filepath.Join(outputPath, relPath)
-				return processTemplate(path, outputFilePath)
+				return processTemplate(path, outputFilePath, values)
 			}
 			return nil
 		})
@@ -88,11 +111,10 @@ func main() {
 			os.Exit(1)
 		}
 	} else {
-		// Process a single file
 		if outputPath != "" {
 			outputPath = filepath.Join(outputPath, filepath.Base(inputPath))
 		}
-		if err := processTemplate(inputPath, outputPath); err != nil {
+		if err := processTemplate(inputPath, outputPath, values); err != nil {
 			fmt.Printf("Error processing file: %v\n", err)
 			os.Exit(1)
 		}
