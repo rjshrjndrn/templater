@@ -31,7 +31,9 @@ func parseYAMLValues(valuesPath string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	return values, nil
+	// Support helm structure
+	// {{ .key }} -> {{ .Values.key }}
+	return map[string]interface{}{"Values": values}, nil
 }
 
 // processTemplate reads the input file, applies the template with the given values, and writes to outputPath.
