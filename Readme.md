@@ -68,6 +68,12 @@ templater -i file -f values.yaml -o out/
 
 ### Installation
 
+1. Binary
+
+Download the latest binary from [Release Page.](https://github.com/rjshrjndrn/templater/releases)
+
+2. Using go get
+
 ```bash
 go get github.com/rjshrjndrn/templater
 ```
