@@ -7,8 +7,7 @@
 ## How to use
 
 ```bash
-templater -h
-
+# File using helm templating
 cat <<'EOF'>file
 ---
 {{- $name := "John" }}
@@ -19,6 +18,24 @@ class:
 EOF
 
 templater -i file
+
+# This will be the output
+
+File: out/file
+---
+class:
+  0: John
+  1: John
+  2: John
+  3: John
+  4: John
+  5: John
+  6: John
+  7: John
+  8: John
+  9: John
+  10: John
+
 ```
 
 
