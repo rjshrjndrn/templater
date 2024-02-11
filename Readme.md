@@ -78,12 +78,6 @@ class:
   10: John
 ```
 
-## Getting Started
-
-### Prerequisites
-
-- Go 1.19 or later
-
 ### Installation
 
 1. Binary
