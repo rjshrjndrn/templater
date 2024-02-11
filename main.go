@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -21,7 +20,7 @@ func parseYAMLValues(valuesPath string) (map[string]interface{}, error) {
 		return values, nil // No values file provided
 	}
 
-	data, err := ioutil.ReadFile(valuesPath)
+	data, err := os.ReadFile(valuesPath)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +37,7 @@ func parseYAMLValues(valuesPath string) (map[string]interface{}, error) {
 
 // processTemplate reads the input file, applies the template with the given values, and writes to outputPath.
 func processTemplate(inputPath, outputPath string, values map[string]interface{}) error {
-	content, err := ioutil.ReadFile(inputPath)
+	content, err := os.ReadFile(inputPath)
 	if err != nil {
 		return err
 	}
