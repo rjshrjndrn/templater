@@ -6,6 +6,8 @@
 
 ## How to use
 
+1. Inline variables
+
 ```bash
 # File using helm templating
 cat <<'EOF'>file
@@ -38,6 +40,25 @@ class:
 
 ```
 
+2. Passing variables from external yaml, using helm style templating.
+```bash
+# Value file
+cat <<'EOF'>values.yaml
+school: Govt. Public School
+EOF
+# File using helm templating
+cat <<'EOF'>file
+---
+{{- $name := "John" }}
+class:
+  school: {{ .Values.school }}
+{{- range $i := until 11 }}
+  {{$i}}: {{$name}}
+{{- end }}
+EOF
+
+templater -i file -f values.yaml -o out/
+```
 
 ## Getting Started
 
