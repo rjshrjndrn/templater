@@ -53,7 +53,7 @@ func processTemplate(inputPath, outputPath string) error {
 func main() {
 	var inputPath, outputPath string
 	flag.StringVar(&inputPath, "i", "", "Path to input file or directory")
-	flag.StringVar(&outputPath, "o", "", "Output directory (optional)")
+	flag.StringVar(&outputPath, "o", "out", "Output directory (optional, default: out)")
 	flag.Parse()
 
 	if inputPath == "" {
