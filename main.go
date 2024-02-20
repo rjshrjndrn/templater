@@ -35,7 +35,7 @@ func parseYAMLValues(valuesPath string) (map[string]interface{}, error) {
 	return map[string]interface{}{"Values": values}, nil
 }
 
-// processTemplate reads the input file, applies the template with the given values, and writes to outputPath.
+// processTemplate reads the input file, applies the template with the given values, and outputs to outputPath or stdout.
 func processTemplate(inputPath, outputPath string, values map[string]interface{}) error {
 	content, err := os.ReadFile(inputPath)
 	if err != nil {
@@ -47,18 +47,18 @@ func processTemplate(inputPath, outputPath string, values map[string]interface{}
 		return err
 	}
 
-	var output *os.File
-	if outputPath == "" {
-		output = os.Stdout
-	} else {
+	// Output to os.Stdout by default
+	output := os.Stdout
+	if outputPath != "" { // Create file if outputPath is provided
 		if err := os.MkdirAll(filepath.Dir(outputPath), os.ModePerm); err != nil {
 			return err
 		}
-		output, err = os.Create(outputPath)
+		file, err := os.Create(outputPath)
 		if err != nil {
 			return err
 		}
-		defer output.Close()
+		defer file.Close()
+		output = file // Use the file as output
 	}
 
 	if err := tpl.Execute(output, values); err != nil {
@@ -71,7 +71,7 @@ func processTemplate(inputPath, outputPath string, values map[string]interface{}
 func main() {
 	var inputPath, outputPath, valuesPath string
 	flag.StringVar(&inputPath, "i", "", "Path to input file or directory")
-	flag.StringVar(&outputPath, "o", "", "Output directory (optional)")
+	flag.StringVar(&outputPath, "o", "", "Output directory or file path (optional)")
 	flag.StringVar(&valuesPath, "f", "", "Path to values YAML file (optional)")
 	flag.Parse()
 
@@ -102,7 +102,10 @@ func main() {
 				if err != nil {
 					return err
 				}
-				outputFilePath := filepath.Join(outputPath, relPath)
+				var outputFilePath string
+				if outputPath != "" {
+					outputFilePath = filepath.Join(outputPath, relPath)
+				}
 				return processTemplate(path, outputFilePath, values)
 			}
 			return nil
@@ -112,9 +115,6 @@ func main() {
 			os.Exit(1)
 		}
 	} else {
-		if outputPath != "" {
-			outputPath = filepath.Join(outputPath, filepath.Base(inputPath))
-		}
 		if err := processTemplate(inputPath, outputPath, values); err != nil {
 			fmt.Printf("Error processing file: %v\n", err)
 			os.Exit(1)
