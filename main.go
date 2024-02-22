@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"html/template"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
 	"gopkg.in/yaml.v3"
