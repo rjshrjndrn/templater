@@ -5,6 +5,7 @@ go 1.21.7
 require (
 	github.com/Masterminds/sprig/v3 v3.2.3
 	gopkg.in/yaml.v3 v3.0.1
+	sigs.k8s.io/yaml v1.4.0
 )
 
 require (

@@ -9,6 +9,7 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
+	"github.com/rjshrjndrn/templater/pkg/utils"
 	"gopkg.in/yaml.v3"
 )
 
@@ -42,7 +43,10 @@ func processTemplate(inputPath, outputPath string, values map[string]interface{}
 		return err
 	}
 
-	tpl, err := template.New(filepath.Base(inputPath)).Funcs(sprig.FuncMap()).Parse(string(content))
+	fm := sprig.FuncMap()
+	fm["toYaml"] = utils.ToYAMLFunc
+
+	tpl, err := template.New(filepath.Base(inputPath)).Funcs(fm).Parse(string(content))
 	if err != nil {
 		return err
 	}
