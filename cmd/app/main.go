@@ -42,7 +42,7 @@ func processTemplate(inputPath, outputPath string, values map[string]interface{}
 		return err
 	}
 
-	tpl, err := template.New(filepath.Base(inputPath)).Funcs(sprig.HtmlFuncMap()).Parse(string(content))
+	tpl, err := template.New(filepath.Base(inputPath)).Funcs(sprig.FuncMap()).Parse(string(content))
 	if err != nil {
 		return err
 	}
