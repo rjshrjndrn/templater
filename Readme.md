@@ -80,11 +80,15 @@ class:
 
 ### Installation
 
-1. Binary
+1. HomeBrew
+
+`brew install rjshrjndrn/tap/templater`
+
+2. Binary
 
 Download the latest binary from [Release Page.](https://github.com/rjshrjndrn/templater/releases)
 
-2. Using go get
+3. Using go get
 
 ```bash
 go get github.com/rjshrjndrn/templater
