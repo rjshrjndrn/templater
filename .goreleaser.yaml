@@ -6,6 +6,8 @@ release:
     name: templater
 builds:
   - main: ./cmd/app
+    ldflags:
+      - -s -w -X main.appVersion={{.Version}}
 brews:
   - name: templater
     repository:

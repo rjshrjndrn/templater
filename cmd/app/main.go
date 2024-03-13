@@ -72,12 +72,22 @@ func processTemplate(inputPath, outputPath string, values map[string]interface{}
 	return nil
 }
 
+// Default version for dev builds
+var appVersion = "dev"
+
 func main() {
 	var inputPath, outputPath, valuesPath string
+	var showVersion bool
 	flag.StringVar(&inputPath, "i", "", "Path to input file or directory")
 	flag.StringVar(&outputPath, "o", "", "Output directory or file path (optional)")
 	flag.StringVar(&valuesPath, "f", "", "Path to values YAML file (optional)")
+	flag.BoolVar(&showVersion, "v", false, "Prints the version of the app and exits")
 	flag.Parse()
+
+	if showVersion {
+		fmt.Println("App Version:", appVersion)
+		return
+	}
 
 	if inputPath == "" {
 		fmt.Println("Input path is required.")
