@@ -1,0 +1,16 @@
+# .goreleaser.yml
+project_name: templater
+release:
+  github:
+    owner: rjshrjndrn
+    name: templater
+brews:
+  - name: templater
+    tap:
+      owner: rjshrjndrn
+      name: homebrew-tap
+    url_template: "https://github.com/rjshrjndrn/templater/releases/download/{{ .Tag }}/templater_{{ .Version }}_{{ .Os }}_{{ .Arch }}.tar.gz"
+    homepage: "https://github.com/rjshrjndrn/templater"
+    description: "A templating tool using helm flavoured sprig"
+    test: |
+      system "#{bin}/templater --version"
