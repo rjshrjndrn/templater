@@ -4,6 +4,8 @@ release:
   github:
     owner: rjshrjndrn
     name: templater
+builds:
+  - main: ./cmd/app
 brews:
   - name: templater
     tap:
