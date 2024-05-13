@@ -6,6 +6,8 @@ release:
     name: templater
 builds:
   - main: ./cmd/app
+    env:
+      - CGO_ENABLED=0
     ldflags:
       - -s -w -X main.appVersion={{.Version}}
 brews:
