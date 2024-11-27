@@ -41,6 +41,7 @@ class:
 ```
 
 2. Passing variables from external yaml, using helm style templating.
+
 ```bash
 # Value file
 cat <<'EOF'>values.yaml
@@ -76,6 +77,21 @@ class:
   8: John
   9: John
   10: John
+```
+
+3. Using stdin
+
+```bash
+# Value file
+cat <<'EOF'>values.yaml
+name: Rajesh
+EOF
+
+echo "hi: {{.Values.name}}" | templater -f values.yaml -i -
+
+output:
+
+hi: Rajesh
 ```
 
 ### Installation
