@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"io/fs"
@@ -38,9 +39,30 @@ func parseYAMLValues(valuesPath string) (map[string]interface{}, error) {
 
 // processTemplate reads the input file, applies the template with the given values, and outputs to outputPath or stdout.
 func processTemplate(inputPath, outputPath string, values map[string]interface{}) error {
-	content, err := os.ReadFile(inputPath)
-	if err != nil {
-		return err
+	var content []byte
+	var err error
+	if inputPath == "-" {
+		// Read from stdin
+		scanner := bufio.NewScanner(os.Stdin)
+		// Scan line by line or token by token
+		for scanner.Scan() {
+			content = append(content, scanner.Bytes()...) // Append current line's bytes
+			content = append(content, '\n')               // Add newline to preserve input structure
+		}
+		content = append(content, scanner.Bytes()...)
+		if err := scanner.Err(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error reading stdin: %v\n", err)
+			return err
+		}
+		if outputPath != "" {
+			fmt.Println("Input is from stdin. Output path will be stdout. If you need to save to a file, >file.yaml .")
+			outputPath = ""
+		}
+	} else {
+		content, err = os.ReadFile(inputPath)
+		if err != nil {
+			return err
+		}
 	}
 
 	fm := sprig.FuncMap()
@@ -48,6 +70,7 @@ func processTemplate(inputPath, outputPath string, values map[string]interface{}
 
 	tpl, err := template.New(filepath.Base(inputPath)).Funcs(fm).Parse(string(content))
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
@@ -100,38 +123,41 @@ func main() {
 		os.Exit(1)
 	}
 
-	info, err := os.Stat(inputPath)
-	if err != nil {
-		fmt.Printf("Error accessing input path: %v\n", err)
-		os.Exit(1)
-	}
+	// input is stdin
+	if inputPath != "-" {
 
-	if info.IsDir() {
-		err := filepath.Walk(inputPath, func(path string, info fs.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			if !info.IsDir() {
-				relPath, err := filepath.Rel(inputPath, path)
+		info, err := os.Stat(inputPath)
+		if err != nil {
+			fmt.Printf("Error accessing input path: %v\n", err)
+			os.Exit(1)
+		}
+
+		if info.IsDir() {
+			err := filepath.Walk(inputPath, func(path string, info fs.FileInfo, err error) error {
 				if err != nil {
 					return err
 				}
-				var outputFilePath string
-				if outputPath != "" {
-					outputFilePath = filepath.Join(outputPath, relPath)
+				if !info.IsDir() {
+					relPath, err := filepath.Rel(inputPath, path)
+					if err != nil {
+						return err
+					}
+					var outputFilePath string
+					if outputPath != "" {
+						outputFilePath = filepath.Join(outputPath, relPath)
+					}
+					return processTemplate(path, outputFilePath, values)
 				}
-				return processTemplate(path, outputFilePath, values)
+				return nil
+			})
+			if err != nil {
+				fmt.Printf("Error processing directory: %v\n", err)
+				os.Exit(1)
 			}
-			return nil
-		})
-		if err != nil {
-			fmt.Printf("Error processing directory: %v\n", err)
-			os.Exit(1)
 		}
-	} else {
-		if err := processTemplate(inputPath, outputPath, values); err != nil {
-			fmt.Printf("Error processing file: %v\n", err)
-			os.Exit(1)
-		}
+	}
+	if err := processTemplate(inputPath, outputPath, values); err != nil {
+		fmt.Printf("Error processing file: %v\n", err)
+		os.Exit(1)
 	}
 }
