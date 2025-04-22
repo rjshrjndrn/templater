@@ -1,6 +1,8 @@
 package utils
 
-import "sigs.k8s.io/yaml"
+import (
+	"sigs.k8s.io/yaml"
+)
 
 func ToYAMLFunc(obj interface{}) (string, error) {
 	data, err := yaml.Marshal(obj)

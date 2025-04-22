@@ -10,32 +10,9 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
+	"github.com/rjshrjndrn/templater/pkg/helper"
 	"github.com/rjshrjndrn/templater/pkg/utils"
-	"gopkg.in/yaml.v3"
 )
-
-// parseYAMLValues reads a YAML file and returns the parsed data.
-func parseYAMLValues(valuesPath string) (map[string]any, error) {
-	var values map[string]any
-
-	if valuesPath == "" {
-		return values, nil // No values file provided
-	}
-
-	data, err := os.ReadFile(valuesPath)
-	if err != nil {
-		return nil, err
-	}
-
-	err = yaml.Unmarshal(data, &values)
-	if err != nil {
-		return nil, err
-	}
-
-	// Support helm structure
-	// {{ .key }} -> {{ .Values.key }}
-	return map[string]any{"Values": values}, nil
-}
 
 // processTemplate reads the input file, applies the template with the given values, and outputs to outputPath or stdout.
 func processTemplate(inputPath, outputPath string, values map[string]any) error {
@@ -98,12 +75,26 @@ func processTemplate(inputPath, outputPath string, values map[string]any) error 
 // Default version for dev builds
 var appVersion = "dev"
 
+// stringSliceFlag implements flag.Value interface to collect multiple flag values
+type stringSliceFlag []string
+
+func (s *stringSliceFlag) String() string {
+	return fmt.Sprintf("%v", *s)
+}
+
+func (s *stringSliceFlag) Set(value string) error {
+	*s = append(*s, value)
+	return nil
+}
+
 func main() {
-	var inputPath, outputPath, valuesPath string
+	var valuesPaths stringSliceFlag
+
+	var inputPath, outputPath string
 	var showVersion bool
 	flag.StringVar(&inputPath, "i", "", "Path to input file or directory. - for stdin. eg: echo {{ .Values | toJson }} | templater -i - -f values.yaml")
 	flag.StringVar(&outputPath, "o", "", "Output directory or file path (optional)")
-	flag.StringVar(&valuesPath, "f", "", "Path to values YAML file (optional)")
+	flag.Var(&valuesPaths, "f", "Path to values YAML file (optional)")
 	flag.BoolVar(&showVersion, "v", false, "Prints the version of the app and exits")
 	flag.Parse()
 
@@ -117,10 +108,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	values, err := parseYAMLValues(valuesPath)
-	if err != nil {
-		fmt.Printf("Error parsing values file: %v\n", err)
-		os.Exit(1)
+	var values map[string]any
+	var err error
+	for range valuesPaths {
+		values, err = helper.ParseYAMLValues(valuesPaths)
+		if err != nil {
+			fmt.Printf("Error parsing values file: %v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	// input is stdin
