@@ -109,3 +109,10 @@ Download the latest binary from [Release Page.](https://github.com/rjshrjndrn/te
 ```bash
 go get github.com/rjshrjndrn/templater
 ```
+4. Github Action
+
+```yaml
+    - name: Download templater
+      run: |
+        curl https://i.jpillora.com/rjshrjndrn/templater! | bash
+```
