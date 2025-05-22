@@ -1,4 +1,4 @@
-module github.com/rjshrjndrn/templater
+module github.com/rjshrjndrn/templater/v5
 
 go 1.23.0
 
