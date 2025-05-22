@@ -107,7 +107,7 @@ Download the latest binary from [Release Page.](https://github.com/rjshrjndrn/te
 3. Using go get
 
 ```bash
-go install github.com/rjshrjndrn/templater/v5@latest
+go install github.com/rjshrjndrn/templater/v6@latest
 ```
 
 4. Github Action
