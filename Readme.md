@@ -107,12 +107,13 @@ Download the latest binary from [Release Page.](https://github.com/rjshrjndrn/te
 3. Using go get
 
 ```bash
-go get github.com/rjshrjndrn/templater
+go install github.com/rjshrjndrn/templater/v5@latest
 ```
+
 4. Github Action
 
 ```yaml
-    - name: Download templater
-      run: |
-        curl https://i.jpillora.com/rjshrjndrn/templater! | bash
+- name: Download templater
+  run: |
+    curl https://i.jpillora.com/rjshrjndrn/templater! | bash
 ```
