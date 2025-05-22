@@ -10,8 +10,8 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
-	"github.com/rjshrjndrn/templater/v5/pkg/helper"
-	"github.com/rjshrjndrn/templater/v5/pkg/utils"
+	"github.com/rjshrjndrn/templater/v6/pkg/helper"
+	"github.com/rjshrjndrn/templater/v6/pkg/utils"
 )
 
 // processTemplate reads the input file, applies the template with the given values, and outputs to outputPath or stdout.
