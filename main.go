@@ -145,6 +145,7 @@ func main() {
 				fmt.Printf("Error processing directory: %v\n", err)
 				os.Exit(1)
 			}
+			return
 		}
 	}
 	if err := processTemplate(inputPath, outputPath, values); err != nil {
