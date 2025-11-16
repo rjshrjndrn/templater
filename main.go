@@ -108,14 +108,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	var values map[string]any
-	var err error
-	for range valuesPaths {
-		values, err = helper.ParseYAMLValues(valuesPaths)
-		if err != nil {
-			fmt.Printf("Error parsing values file: %v\n", err)
-			os.Exit(1)
-		}
+	values, err := helper.ParseYAMLValues(valuesPaths)
+	if err != nil {
+		fmt.Printf("Error parsing values file: %v\n", err)
+		os.Exit(1)
 	}
 
 	// input is stdin
