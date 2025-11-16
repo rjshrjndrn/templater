@@ -6,4 +6,4 @@ run: ## Run the program
 	@go run ./main.go $@
 
 build: ## Build the program
-	@CGO_ENABLED=0 go build -ldflags "-s -w" -v cmd/app/main.go
+	@CGO_ENABLED=0 go build -ldflags "-s -w" -v main.go
