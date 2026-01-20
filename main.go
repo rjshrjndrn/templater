@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
 	"io/fs"
@@ -44,6 +45,24 @@ func processTemplate(inputPath, outputPath string, values map[string]any) error 
 
 	fm := sprig.FuncMap()
 	fm["toYaml"] = utils.ToYAMLFunc
+
+	// tpl: evaluate a string as a template. Usage: {{ tpl "Hello {{ .Values.name }}" . }}
+	var tplFunc func(string, any) (string, error)
+	tplFunc = func(tplString string, data any) (string, error) {
+		nestedFm := sprig.FuncMap()
+		nestedFm["toYaml"] = utils.ToYAMLFunc
+		nestedFm["tpl"] = tplFunc
+		t, err := template.New("tpl").Funcs(nestedFm).Parse(tplString)
+		if err != nil {
+			return "", err
+		}
+		var buf bytes.Buffer
+		if err := t.Execute(&buf, data); err != nil {
+			return "", err
+		}
+		return buf.String(), nil
+	}
+	fm["tpl"] = tplFunc
 
 	tpl, err := template.New(filepath.Base(inputPath)).Funcs(fm).Parse(string(content))
 	if err != nil {

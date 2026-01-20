@@ -1,0 +1,20 @@
+vpc:
+  cidr: 10.0.0.0/16
+  publicSubnets:
+    cidrs:
+      - 10.0.1.0/24
+      - 10.0.2.0/24
+    placeholder: |
+      PublicSubnet{{ add .index 1 }}:
+        Type: AWS::EC2::Subnet
+        Properties:
+          VpcId: !Ref Vpc
+          CidrBlock: {{ .cidr | quote }}
+          AvailabilityZone: !Select [{{ .index }}, !GetAZs '']
+          MapPublicIpOnLaunch: true
+          Tags:
+            - Key: Name
+              Value: !Sub "${EnvironmentName}-public-subnet-{{ add .index 1 }}"
+  privateSubnets:
+    cidrs:
+      - 10.0.10.0/24
