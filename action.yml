@@ -1,0 +1,54 @@
+name: 'Templater'
+description: 'Process templates using Helm-style Sprig functions'
+branding:
+  icon: 'file-text'
+  color: 'blue'
+
+inputs:
+  input:
+    description: 'Input file or directory path'
+    required: true
+  output:
+    description: 'Output file or directory path'
+    required: false
+    default: ''
+  values:
+    description: 'Values file(s), comma or newline separated'
+    required: false
+    default: ''
+  version:
+    description: 'Templater version (e.g., v6.1.0). Defaults to latest'
+    required: false
+    default: 'latest'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install templater
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+      run: |
+        if [[ "$VERSION" == "latest" ]]; then
+          curl -sL https://i.jpillora.com/rjshrjndrn/templater! | bash
+        else
+          curl -sL "https://i.jpillora.com/rjshrjndrn/templater@${VERSION}!" | bash
+        fi
+
+    - name: Run templater
+      shell: bash
+      env:
+        INPUT: ${{ inputs.input }}
+        OUTPUT: ${{ inputs.output }}
+        VALUES: ${{ inputs.values }}
+      run: |
+        args="-i ${INPUT}"
+        [[ -n "${OUTPUT}" ]] && args="${args} -o ${OUTPUT}"
+        if [[ -n "${VALUES}" ]]; then
+          while IFS= read -r f || [[ -n "$f" ]]; do
+            f=$(echo "$f" | xargs)
+            [[ -n "$f" ]] && args="${args} -f ${f}"
+          done <<< "$(echo "${VALUES}" | tr ',' '\n')"
+        fi
+        echo "Running: templater ${args}"
+        templater ${args}
