@@ -1,0 +1,8 @@
+appName: myapp
+version: 1.0.0
+environment: production
+
+environments:
+  - dev
+  - staging
+  - prod

@@ -1,0 +1,12 @@
+appName: myapp
+version: 1.0.0
+environment: production
+replicas: 3
+
+image:
+  repository: nginx
+  tag: latest
+
+service:
+  port: 80
+  type: ClusterIP
