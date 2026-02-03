@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"flag"
 	"fmt"
 	"io/fs"
@@ -55,66 +54,8 @@ func processTemplate(inputPath, outputPath string, values map[string]any) error 
 
 	fm := sprig.FuncMap()
 	fm["toYaml"] = utils.ToYAMLFunc
-
-	// tpl: evaluate a string as a template. Usage: {{ tpl "Hello {{ .Values.name }}" . }}
-	var tplFunc func(string, any) (string, error)
-	tplFunc = func(tplString string, data any) (string, error) {
-		nestedFm := sprig.FuncMap()
-		nestedFm["toYaml"] = utils.ToYAMLFunc
-		nestedFm["tpl"] = tplFunc
-		t, err := template.New("tpl").Funcs(nestedFm).Parse(tplString)
-		if err != nil {
-			return "", err
-		}
-		var buf bytes.Buffer
-		if err := t.Execute(&buf, data); err != nil {
-			return "", err
-		}
-		return buf.String(), nil
-	}
-	fm["tpl"] = tplFunc
-
-	// include: load and execute an external template file. Usage: {{ include "path/to/file.tpl" . }}
-	var makeIncludeFunc func(string) func(string, any) (string, error)
-	makeIncludeFunc = func(currentBaseDir string) func(string, any) (string, error) {
-		return func(filePath string, data any) (string, error) {
-			// Resolve path relative to the current template's directory
-			var resolvedPath string
-			if filepath.IsAbs(filePath) {
-				resolvedPath = filePath
-			} else {
-				resolvedPath = filepath.Join(currentBaseDir, filePath)
-			}
-
-			// Read the template file
-			includeContent, err := os.ReadFile(resolvedPath)
-			if err != nil {
-				return "", fmt.Errorf("failed to read include file %s: %w", resolvedPath, err)
-			}
-
-			// Get the directory of the included file for nested includes
-			includeBaseDir := filepath.Dir(resolvedPath)
-
-			// Create function map for the included template
-			includeFm := sprig.FuncMap()
-			includeFm["toYaml"] = utils.ToYAMLFunc
-			includeFm["tpl"] = tplFunc
-			includeFm["include"] = makeIncludeFunc(includeBaseDir)
-
-			// Parse and execute the included template
-			t, err := template.New(filepath.Base(resolvedPath)).Funcs(includeFm).Parse(string(includeContent))
-			if err != nil {
-				return "", fmt.Errorf("failed to parse include file %s: %w", resolvedPath, err)
-			}
-
-			var buf bytes.Buffer
-			if err := t.Execute(&buf, data); err != nil {
-				return "", fmt.Errorf("failed to execute include file %s: %w", resolvedPath, err)
-			}
-			return buf.String(), nil
-		}
-	}
-	fm["include"] = makeIncludeFunc(baseDir)
+	fm["tpl"] = utils.MakeTplFunc()
+	fm["include"] = utils.MakeIncludeFunc(baseDir, fm["tpl"].(func(string, any) (string, error)))
 
 	tpl, err := template.New(filepath.Base(inputPath)).Funcs(fm).Parse(string(content))
 	if err != nil {
