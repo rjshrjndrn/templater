@@ -94,6 +94,36 @@ output:
 hi: Rajesh
 ```
 
+4. Using --set to override values (like Helm)
+
+```bash
+# Value file
+cat <<'EOF'>values.yaml
+app:
+  name: myapp
+  replicas: 1
+EOF
+
+cat <<'EOF'>deployment.yaml
+name: {{ .Values.app.name }}
+replicas: {{ .Values.app.replicas }}
+enabled: {{ .Values.app.enabled }}
+EOF
+
+# --set takes precedence over -f values
+templater -i deployment.yaml -f values.yaml --set app.replicas=3 --set app.enabled=true
+
+output:
+
+name: myapp
+replicas: 3
+enabled: true
+```
+
+Priority order (highest to lowest):
+1. `--set` flags
+2. `-f` values files (last file takes precedence over earlier ones)
+
 ### Installation
 
 1. HomeBrew

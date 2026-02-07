@@ -101,12 +101,14 @@ func (s *stringSliceFlag) Set(value string) error {
 
 func main() {
 	var valuesPaths stringSliceFlag
+	var setValues stringSliceFlag
 
 	var inputPath, outputPath string
 	var showVersion bool
-	flag.StringVar(&inputPath, "i", "", "Path to input file or directory. - for stdin. eg: echo {{ .Values | toJson }} | templater -i - -f values.yaml")
+	flag.StringVar(&inputPath, "i", "", "Path to input file or directory. Use - for stdin.\n\tExample: echo '{{ .Values.name }}' | templater -i - --set name=John")
 	flag.StringVar(&outputPath, "o", "", "Output directory or file path (optional)")
-	flag.Var(&valuesPaths, "f", "Path to values YAML file (optional)")
+	flag.Var(&valuesPaths, "f", "Path to values YAML file (can be specified multiple times, last file takes precedence)\n\tExample: -f defaults.yaml -f values.yaml")
+	flag.Var(&setValues, "set", "Set values using dot notation (can be specified multiple times, takes precedence over -f)\n\tExample: --set app.replicas=3 --set app.enabled=true")
 	flag.BoolVar(&showVersion, "v", false, "Prints the version of the app and exits")
 	flag.Parse()
 
@@ -124,6 +126,21 @@ func main() {
 	if err != nil {
 		fmt.Printf("Error parsing values file: %v\n", err)
 		os.Exit(1)
+	}
+
+	// Parse --set values and merge them (--set takes precedence)
+	if len(setValues) > 0 {
+		setMap, err := helper.ParseSetValues(setValues)
+		if err != nil {
+			fmt.Printf("Error parsing --set values: %v\n", err)
+			os.Exit(1)
+		}
+		// Merge set values into Values key (set values take precedence)
+		if valuesMap, ok := values["Values"].(map[string]any); ok {
+			values["Values"] = helper.MergeYaml(setMap, valuesMap)
+		} else {
+			values["Values"] = setMap
+		}
 	}
 
 	// input is stdin
