@@ -94,30 +94,21 @@ output:
 hi: Rajesh
 ```
 
-4. Using --set to override values (like Helm)
+4. Using --set to override values (Helm-compatible)
 
 ```bash
-# Value file
-cat <<'EOF'>values.yaml
-app:
-  name: myapp
-  replicas: 1
-EOF
-
-cat <<'EOF'>deployment.yaml
-name: {{ .Values.app.name }}
-replicas: {{ .Values.app.replicas }}
-enabled: {{ .Values.app.enabled }}
-EOF
-
-# --set takes precedence over -f values
+# Basic dot notation
 templater -i deployment.yaml -f values.yaml --set app.replicas=3 --set app.enabled=true
 
-output:
+# Arrays
+templater -i template.yaml --set 'hosts={host1,host2,host3}'
 
-name: myapp
-replicas: 3
-enabled: true
+# Array indexes
+templater -i template.yaml --set 'servers[0].port=8080' --set 'servers[0].host=localhost'
+
+# Escaping commas and dots
+templater -i template.yaml --set 'annotation=value\,with\,commas'
+templater -i template.yaml --set 'nodeSelector.kubernetes\.io/role=master'
 ```
 
 Priority order (highest to lowest):

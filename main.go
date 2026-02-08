@@ -108,7 +108,7 @@ func main() {
 	flag.StringVar(&inputPath, "i", "", "Path to input file or directory. Use - for stdin.\n\tExample: echo '{{ .Values.name }}' | templater -i - --set name=John")
 	flag.StringVar(&outputPath, "o", "", "Output directory or file path (optional)")
 	flag.Var(&valuesPaths, "f", "Path to values YAML file (can be specified multiple times, last file takes precedence)\n\tExample: -f defaults.yaml -f values.yaml")
-	flag.Var(&setValues, "set", "Set values using dot notation (can be specified multiple times, takes precedence over -f)\n\tExample: --set app.replicas=3 --set app.enabled=true")
+	flag.Var(&setValues, "set", "Set values using Helm-compatible syntax (can be specified multiple times, takes precedence over -f)\n\tExamples: --set app.replicas=3 --set 'hosts={a,b,c}' --set 'servers[0].port=80'")
 	flag.BoolVar(&showVersion, "v", false, "Prints the version of the app and exits")
 	flag.Parse()
 
@@ -128,19 +128,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Parse --set values and merge them (--set takes precedence)
+	// Parse --set values directly into Values map (--set takes precedence)
 	if len(setValues) > 0 {
-		setMap, err := helper.ParseSetValues(setValues)
-		if err != nil {
+		valuesMap, ok := values["Values"].(map[string]any)
+		if !ok {
+			valuesMap = make(map[string]any)
+		}
+		if err := helper.ParseSetValues(setValues, valuesMap); err != nil {
 			fmt.Printf("Error parsing --set values: %v\n", err)
 			os.Exit(1)
 		}
-		// Merge set values into Values key (set values take precedence)
-		if valuesMap, ok := values["Values"].(map[string]any); ok {
-			values["Values"] = helper.MergeYaml(setMap, valuesMap)
-		} else {
-			values["Values"] = setMap
-		}
+		values["Values"] = valuesMap
 	}
 
 	// input is stdin
