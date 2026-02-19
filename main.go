@@ -107,7 +107,7 @@ func main() {
 	var showVersion bool
 	flag.StringVar(&inputPath, "i", "", "Path to input file or directory. Use - for stdin.\n\tExample: echo '{{ .Values.name }}' | templater -i - --set name=John")
 	flag.StringVar(&outputPath, "o", "", "Output directory or file path (optional)")
-	flag.Var(&valuesPaths, "f", "Path to values YAML file (can be specified multiple times, last file takes precedence)\n\tExample: -f defaults.yaml -f values.yaml")
+	flag.Var(&valuesPaths, "f", "Path to values YAML file (can be specified multiple times, last file takes precedence)\n\tExample: -f defaults.yaml -f values.yaml\n\tUse __replace: true inside a map to replace it entirely instead of deep merging:\n\t  class:\n\t    __replace: true\n\t    name: suresh")
 	flag.Var(&setValues, "set", "Set values using Helm-compatible syntax (can be specified multiple times, takes precedence over -f)\n\tExamples: --set app.replicas=3 --set 'hosts={a,b,c}' --set 'servers[0].port=80'")
 	flag.BoolVar(&showVersion, "v", false, "Prints the version of the app and exits")
 	flag.Parse()
