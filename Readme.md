@@ -115,6 +115,29 @@ Priority order (highest to lowest):
 1. `--set` flags
 2. `-f` values files (last file takes precedence over earlier ones)
 
+## Magic Functions
+
+### `__replace: true`
+
+When using multiple `-f` files, maps are deep merged by default. To replace a map entirely instead of merging, add `__replace: true` to it.
+
+```bash
+# defaults.yaml
+class:
+  name: rajesh
+  grade: 10
+
+# overrides.yaml
+class:
+  __replace: true
+  name: suresh
+
+templater -i template.yaml -f defaults.yaml -f overrides.yaml
+# Result: class has only {name: suresh} -- grade is dropped
+```
+
+The `__replace` annotation only affects values from earlier `-f` files. If a later `-f` file provides the same key, it merges normally (or replaces again if it also has `__replace: true`). The `__replace` key is stripped before template execution and never appears in output.
+
 ### Installation
 
 1. HomeBrew
